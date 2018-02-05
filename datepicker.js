@@ -8,40 +8,40 @@
      */
     class DatePicker {
         constructor(mountedEleSelector) {
-            this.mountedEle = document.querySelector(mountedEleSelector);
-            // 缓存数据
-            this.tmp = [];
-            this.initRender()
+            var util = this.util = new Util();
+            this.mountedEle = util.$(mountedEleSelector);
+            this.showDateData = [];
             this.init();
-            this.bindEvent()
+            this.bindEvent();
+
         }
         init(year, month, date) {
-
-            this.showMonthData(year, month, date);
-            var html = this.render();
-            document.querySelector('.date-picker-datepanel').innerHTML = html;
+            this.initRender();
+            this.renderShowDatePanel();
         }
+        // 渲染主体面板
         initRender() {
             var html = '<div class="date-picker">' +
-                            '<input type="text" class="date-picker-input">' +
-                            '<div class="date-picker-showpanel">'+
-                                '<div class="date-picker-controll">' +
-                                    '<div>'+
-                                        '<span class="date-picker-prev btn">&lt;</span>' +
-                                        '<span class="date-picker-date">' + this.year + '-' + this.month + '-' + this.date + '</span>' +
-                                        '<span class="date-picker-next btn">&gt;</span>' +
-                                    '</div>'+
-                                    '<div>'+
-                                        '<label class="date-picker-label" for="selectmore">选择多个</label>'+
-                                        '<input type="radio" id="selectmore" class="date-picker-selectmore" name="select" value="1">'+
-                                        '<input type="radio" id="selectmore" class="date-picker-selectmore" name="select" value="0">'+
-                                    '</div>'+
-                                '</div>' +
-                                '<div class="date-picker-datepanel"></div>'+
-                            '</div>'+
-                    '</div>';
+                '<input type="text" class="date-picker-input">' +
+                '<div class="date-picker-showpanel">' +
+                '<div class="date-picker-controll">' +
+                '<div>' +
+                '<span class="date-picker-prev btn">&lt;</span>' +
+                '<span class="date-picker-now">' + this.year + '-' + this.month + '-' + this.date + '</span>' +
+                '<span class="date-picker-next btn">&gt;</span>' +
+                '</div>' +
+                '<div class="date-picker-selectmore-row">' +
+                '<label class="date-picker-label" for="selectmore">选择多个</label>' +
+                '<span class="selectmore-text">是</span><input type="radio" id="selectmore" class="date-picker-selectmore" name="select" value="1">' +
+                '<span class="selectmore-text">否</span><input type="radio" id="selectmore" class="date-picker-selectmore" name="select" value="0">' +
+                '</div>' +
+                '</div>' +
+                '<div class="date-picker-datepanel"></div>' +
+                '</div>' +
+                '</div>';
             this.mountedEle.innerHTML = html;
         }
+        // 计算日期数据
         showMonthData(year, month, date) {
             /**
              * 根据今天的日期得出当前月份
@@ -73,6 +73,7 @@
 
 
             this.year = thisYear;
+            // month均为修正后的月份
             this.month = thisMonth;
             this.date = today.getDate();
 
@@ -126,66 +127,115 @@
 
             }
             this.monthData = monthData;
-            this.tmp[thisMonth] = monthData;
         }
-        render() {
-            document.querySelector('.date-picker-date').innerHTML = this.year + '-' + this.month + '-' + this.date;
+        // 渲染日期展示面板
+        renderShowDatePanel(year, month, date) {
+            this.showMonthData(year, month, date);
+            this.util.$('.date-picker-now').innerHTML = this.year + '-' + this.month + '-' + this.date;
 
             var html = '<table><tbody>',
                 monthData = this.monthData;
 
             for (var i = 0; i < 6; i++) {
-                // if (i > 1 && !monthData[i * 7].showDate) {
-                //     break;
-                // }
                 html += '<tr>'
                 for (var j = 0; j < 7; j++) {
                     if (monthData[i * 7 + j].next || monthData[i * 7 + j].prev) {
-                        html += '<td class="not-this-month"><span>' + monthData[i * 7 + j].showDate + '</span></td>'
+                        html += '<td class="not-this-month date-picker-date"><span class="date-picker-date">' + monthData[i * 7 + j].showDate + '</span></td>'
                     } else {
-                        html += '<td><span>' + monthData[i * 7 + j].showDate + '</span></td>'
+                        html += '<td class="date-picker-date"><span class="date-picker-date">' + monthData[i * 7 + j].showDate + '</span></td>'
                     }
                 }
-
                 html += '</tr>';
-
             }
             html += '</tbody>' +
                 '</table>';
-            return html;
+            this.util.$('.date-picker-datepanel').innerHTML = html;
         }
+        // 绑定事件
         bindEvent() {
             var self = this,
                 mountedEle = this.mountedEle,
-                util = new Util(),
-                on = util.on;
-            function $(selector){
-                return document.querySelector(selector)
-            }
+                on = this.util.on,
+                selectmoreTxt = '',
+                $ = this.util.$,
+                showDateData = self.showDateData;
             // 上一个月按钮
             on('.date-picker', 'click', 'date-picker-prev', function () {
+                // 显示上一年
                 if (self.month - 1 <= 0) {
                     self.year -= 1;
                     self.month = 12;
                 } else {
                     self.month -= 1
                 }
-                self.init(self.year, self.month, 1);
+                self.renderShowDatePanel(self.year, self.month, 1);
             });
             // 下一个月按钮
             on('.date-picker', 'click', 'date-picker-next', function () {
+                // 显示下一年
                 if (self.month + 1 > 12) {
                     self.year += 1;
-                    self.month = 0;
+                    self.month = 1;
                 } else {
                     self.month += 1
                 }
-                self.init(self.year, self.month, 1);
+                self.renderShowDatePanel(self.year, self.month, 1);
             });
+
             // 输入聚焦弹出
             on('.date-picker-input', 'focus', function () {
                 $('.date-picker-showpanel').style.display = 'block';
+            });
+
+            // 面板选择日期
+            on('.date-picker', 'click', 'date-picker-date', function () {
+                var year = self.year,
+                    month = self.month,
+                    date = this.innerText ? this.innerText : this.firstChild.innerText;
+                // this.selectedDate = {
+                //     year,
+                //     month,
+                //     date
+                // };
+                var seletedTxt = year + '-' + month + '-' + date + '  ';
+                if (self.selectmore) {
+                    self.showDateData.push({
+                        year,
+                        month,
+                        date
+                    });
+                    selectmoreTxt += seletedTxt;
+                } else {
+                    self.showDateData = [{
+                        year,
+                        month,
+                        date
+                    }];
+                    selectmoreTxt = seletedTxt;
+                }
+                $('.date-picker-input').value = selectmoreTxt;
+            });
+
+            // 点击除了date-picker区域外的关闭日期面板
+            on('.date-picker', 'click', function (e) {
+                e.stopPropagation();
             })
+            on(document, 'click', function (e) {
+                $('.date-picker-showpanel').style.display = 'none';
+            });
+
+            // 单选框绑定事件
+            on('.date-picker', 'change', 'date-picker-selectmore', function () {
+                if (+this.value === 1) {
+                    self.selectmore = true;
+                } else {
+                    self.selectmore = false;
+
+                }
+            })
+        }
+        showSelectedDate() {
+            return this.showDateData;
         }
     }
     // 工具对象
@@ -196,20 +246,21 @@
                     break;
                 }
             }
-        }
+        };
         $(selector) {
             return document.querySelector(selector);
-        }
+        };
+        // 用于绑定事件，可以进行事件委托
         on(pSelector, type, cClass, fn) {
             function $(selector) {
                 return document.querySelector(selector);
             }
-            var pEle = $(pSelector);
+            var pEle = typeof pSelector === 'string' ? $(pSelector) : pSelector;
             if (typeof cClass === 'string') {
                 var cEle = pEle.querySelector('.' + cClass);
                 pEle.addEventListener(type, function (e) {
                     if (e.target.classList.contains(cClass)) {
-                        fn.call(cEle, e)
+                        fn.call(e.target, e)
                     } else {
                         return;
                     }
