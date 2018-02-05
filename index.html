@@ -6,23 +6,67 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>datepicker</title>
     <style>
-        table td {
-            border: 1px solid #000000;
-            width: 30px;
-            text-align: center;
+        .date-picker {
+            width: 324px;
+            position: absolute;
         }
-        table .btn {
+        .date-picker table td {
+            width: 42px;
+            height: 30px;
+            text-align: center;
+            font-size: 12px;
+        }
+        .date-picker table td.not-this-month {
+           color: #c0c4cc;
+        }
+        .date-picker .btn {
             display: inline-block;
             width: 30px;
             text-align: center;
             height: 20px;
             line-height: 20px;
+            font-size: 12px;
+            color: #606266;
         }
-        table .prev {
+        .date-picker .date-picker-prev {
             float: left;
         }
-        table .next {
+        .date-picker .date-picker-next {
             float: right;
+        }
+        .date-picker .date-picker-showpanel {
+            width: 80%;
+            margin: 0 auto;
+            /* display: none; */
+        }
+        .date-picker .date-picker-date {
+            font-size: 16px;
+            font-weight: 500;
+            display: inline-block;
+            width: 70%;
+            text-align: center;
+            color: #606266;
+        }
+        .date-picker input.date-picker-input {
+            width: 250px;
+            height: 30px;
+            display: block;
+            margin: 0 auto;
+            border-radius: 4px;
+            border: 1px solid #dcdfe6;   
+            font-size: inherit;
+            margin-bottom: 20px;   
+            color: #606266;      
+        }
+        .date-picker .date-picker-label {
+            font-size: 12px;
+            color: #606266;
+        }
+        .date-picker .date-picker-selectmore {
+            
+        }
+        .date-picker input.date-picker-input:focus {
+            outline: none;
         }
     </style>
 </head>
